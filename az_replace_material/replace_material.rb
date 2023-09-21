@@ -11,42 +11,29 @@ module AlexZahn
   module ReplaceMaterial
     
     # Materials observer to store the currently-selected material 
-    # (The @active_material variable updates every time the user selects a material with the eyedropper)
+    # (The @active_material variable updates when the user selects a material with the eyedropper)
     class MRMatObserver < Sketchup::MaterialsObserver
-      def clearActiveMaterial
-        @@active_material = nil 
+      def initialize
+        @active_material = nil
       end
       
       def active_material
-          return @@active_material
+        return @active_material
+      end        
+        
+      def clearActiveMaterial
+        @active_material = nil 
       end
       
       def onMaterialSetCurrent(materials, material)
         puts "Setting active_material to #{material}"
-        @@active_material = material
+        @active_material = material
       end
     end
     
-    # App observer to assign and initialize a materials observer on startup
-    class MRAppObserver < Sketchup::AppObserver
-      def initialize(matObserver)
-        @@matObserver = matObserver
-        Sketchup.active_model.materials.add_observer(@@matObserver)
-      end
-        
-      def expectsStartupModelNotifications
-        return true
-      end
-      
-      def onActivateModel(model)
-        @@matObserver.clearActiveMaterial
-      end
-    end
-    
-    # Create instances of our materials observer and app observer classes
+    # Instantiate and attach our materials observer class
     @matObserver = MRMatObserver.new
-    @appObserver = MRAppObserver.new(@matObserver)
-    Sketchup.add_observer(@appObserver)
+    Sketchup.active_model.materials.add_observer(@matObserver)
     
     # Method for finding entities painted with a particular material, and repainting with the replacement material
     # Recurse into nested components/groups
